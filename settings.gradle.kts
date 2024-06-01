@@ -1,2 +1,9 @@
-// The project name, used as the name of the final artifact
-rootProject.name = "template"
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        maven("https://maven.xpdustry.com/releases")
+    }
+}
+
+rootProject.name = "watchdog"

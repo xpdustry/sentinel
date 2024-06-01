@@ -1,0 +1,12 @@
+{
+  "name": "watchdog",
+  "displayName": "Watchdog",
+  "author": "xpdustry",
+  "description": "Monitor your mindustry server.",
+  "version": "0.1.0",
+  "minGameVersion": "146",
+  "java": true,
+  "main": "com.xpdustry.watchdog.WatchdogPlugin",
+  "repo": "xpdustry/watchdog",
+  "dependencies": ["kotlin-runtime","distributor-common"]
+}
