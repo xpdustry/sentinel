@@ -21,17 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog
+package com.xpdustry.watchdog.api.history
 
-import com.xpdustry.distributor.api.plugin.AbstractMindustryPlugin
+public interface HistoryExplorer {
+    public fun getHistory(
+        x: Int,
+        y: Int,
+    ): List<HistoryEntry>
 
-@Suppress("unused")
-internal class WatchdogPlugin : AbstractMindustryPlugin() {
-    override fun onInit() {
-        logger.info("Bonjour")
-    }
+    public fun getHistory(uuid: String): List<HistoryEntry>
 
-    override fun onExit() {
-        logger.info("Au revoir")
-    }
+    public fun getLatestPlace(
+        x: Int,
+        y: Int,
+    ): HistoryEntry? =
+        getHistory(x, y)
+            .toMutableList()
+            .dropLastWhile { it.type == HistoryEntry.Type.ROTATE || it.type == HistoryEntry.Type.CONFIGURE }
+            .lastOrNull()
+            ?.takeIf { it.type == HistoryEntry.Type.PLACE }
 }

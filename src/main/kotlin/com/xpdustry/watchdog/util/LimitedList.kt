@@ -21,17 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog
+package com.xpdustry.watchdog.util
 
-import com.xpdustry.distributor.api.plugin.AbstractMindustryPlugin
+import java.util.LinkedList
 
-@Suppress("unused")
-internal class WatchdogPlugin : AbstractMindustryPlugin() {
-    override fun onInit() {
-        logger.info("Bonjour")
-    }
-
-    override fun onExit() {
-        logger.info("Au revoir")
+internal class LimitedList<E>(private val limit: Int) : LinkedList<E>() {
+    override fun add(element: E): Boolean {
+        if (this.size >= limit) removeFirst()
+        return super.add(element)
     }
 }

@@ -21,17 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog
+package com.xpdustry.watchdog.util
 
-import com.xpdustry.distributor.api.plugin.AbstractMindustryPlugin
-
-@Suppress("unused")
-internal class WatchdogPlugin : AbstractMindustryPlugin() {
-    override fun onInit() {
-        logger.info("Bonjour")
-    }
-
-    override fun onExit() {
-        logger.info("Au revoir")
-    }
-}
+public data class Point(val x: Int, val y: Int)

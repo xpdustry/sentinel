@@ -21,17 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog
+package com.xpdustry.watchdog.api.history
 
-import com.xpdustry.distributor.api.plugin.AbstractMindustryPlugin
+import mindustry.world.Block
+import java.time.Instant
 
-@Suppress("unused")
-internal class WatchdogPlugin : AbstractMindustryPlugin() {
-    override fun onInit() {
-        logger.info("Bonjour")
-    }
-
-    override fun onExit() {
-        logger.info("Au revoir")
+public data class HistoryEntry(
+    val x: Int,
+    val y: Int,
+    val buildX: Int,
+    val buildY: Int,
+    val author: HistoryAuthor,
+    val block: Block,
+    val type: Type,
+    val rotation: Int,
+    val configuration: HistoryConfig? = null,
+    val virtual: Boolean = false,
+    val timestamp: Instant = Instant.now(),
+) {
+    public enum class Type {
+        PLACING,
+        PLACE,
+        BREAKING,
+        ROTATE,
+        BREAK,
+        CONFIGURE,
+        // SET,
     }
 }

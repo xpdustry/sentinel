@@ -36,17 +36,14 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Build Artifact
-        run: ./gradlew build
-
-      - name: Set up Artifact Upload
-        id: upload
-        run: echo "ARTIFACT_PATH=$(./gradlew getArtifactPath -q)" >> $GITHUB_ENV
+        run: ./gradlew release
 
       - name: Upload Artifact to Actions
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}
-          path: ${{ env.ARTIFACT_PATH }}
+          name: "${{ github.event.repository.name }}-artifacts"
+          path: build/tmp/release/*.jar
+          if-no-files-found: error
 
       - name: Determine Status
         run: |
@@ -65,13 +62,13 @@ jobs:
           ORG_GRADLE_PROJECT_signingKey: "${{ secrets.XPDUSTRY_MAVEN_SIGNING_KEY }}"
           ORG_GRADLE_PROJECT_signingPassword: "${{ secrets.XPDUSTRY_MAVEN_SIGNING_PASSWORD }}"
 
-      - name: Upload Artifact to Release
+      - name: Upload Artifacts to Release
         if: ${{ env.STATUS == 'release' && github.event_name == 'release' }}
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          asset_name: ${{ github.event.repository.name }}.jar
-          file: ${{ env.ARTIFACT_PATH }}
+          file: build/tmp/release/*.jar
+          file_glob: true
           tag: ${{ github.ref }}
 
       - name: Update Changelog

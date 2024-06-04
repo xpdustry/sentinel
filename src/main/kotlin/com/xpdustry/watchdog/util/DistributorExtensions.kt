@@ -21,17 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog
+package com.xpdustry.watchdog.util
 
-import com.xpdustry.distributor.api.plugin.AbstractMindustryPlugin
+import arc.struct.ObjectMap
+import arc.struct.Seq
+import com.xpdustry.distributor.api.collection.MindustryCollections
 
-@Suppress("unused")
-internal class WatchdogPlugin : AbstractMindustryPlugin() {
-    override fun onInit() {
-        logger.info("Bonjour")
-    }
+internal fun <T> Seq<T>.asList(): List<T> = MindustryCollections.immutableList(this)
 
-    override fun onExit() {
-        logger.info("Au revoir")
-    }
-}
+internal fun <K, V> ObjectMap<K, V>.asMap(): Map<K, V> = MindustryCollections.immutableMap(this)

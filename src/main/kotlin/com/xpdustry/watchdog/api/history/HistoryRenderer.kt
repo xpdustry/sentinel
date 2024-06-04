@@ -21,17 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog
+package com.xpdustry.watchdog.api.history
 
-import com.xpdustry.distributor.api.plugin.AbstractMindustryPlugin
+import com.xpdustry.distributor.api.component.Component
 
-@Suppress("unused")
-internal class WatchdogPlugin : AbstractMindustryPlugin() {
-    override fun onInit() {
-        logger.info("Bonjour")
-    }
-
-    override fun onExit() {
-        logger.info("Au revoir")
-    }
+public interface HistoryRenderer {
+    public fun render(entries: List<HistoryEntry>): Component
 }

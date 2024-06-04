@@ -21,17 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog
+package com.xpdustry.watchdog.api.history
 
-import com.xpdustry.distributor.api.plugin.AbstractMindustryPlugin
+import com.xpdustry.distributor.api.player.MUUID
+import mindustry.game.Team
+import mindustry.gen.Nulls
+import mindustry.type.UnitType
 
-@Suppress("unused")
-internal class WatchdogPlugin : AbstractMindustryPlugin() {
-    override fun onInit() {
-        logger.info("Bonjour")
+public sealed interface HistoryAuthor {
+    public val team: Team
+    public val unit: UnitType
+
+    public class Unit(unit: mindustry.gen.Unit) : HistoryAuthor {
+        override val team: Team = unit.team()
+        override val unit: UnitType = unit.type()
     }
 
-    override fun onExit() {
-        logger.info("Au revoir")
+    public class Player(player: mindustry.gen.Player) : HistoryAuthor {
+        public val muuid: MUUID = MUUID.from(player)
+        override val team: Team = player.team()
+        override val unit: UnitType = player.unit().type()
+    }
+
+    public data object Server : HistoryAuthor {
+        override val team: Team = Team.derelict
+        override val unit: UnitType = Nulls.unit.type
     }
 }

@@ -15,9 +15,7 @@ plugins {
 
 val metadata = ModMetadata.fromJson(file("plugin.json").readText())
 group = "com.xpdustry"
-if (indraGit.headTag() == null) {
-    metadata.version += "-SNAPSHOT"
-}
+if (indraGit.headTag() == null) metadata.version += "-SNAPSHOT"
 version = metadata.version
 description = metadata.description
 
@@ -37,6 +35,7 @@ repositories {
 
 dependencies {
     compileOnly(kotlin("stdlib-jdk8"))
+    compileOnly(kotlin("reflect"))
     compileOnly(toxopid.dependencies.arcCore)
     compileOnly(toxopid.dependencies.mindustryCore)
     compileOnly(libs.distributor.api)
@@ -102,9 +101,8 @@ spotless {
     }
 }
 
-// Required for the GitHub actions
-tasks.register("getArtifactPath") {
-    doLast { println(tasks.shadowJar.get().archiveFile.get().toString()) }
+kotlin {
+    explicitApi()
 }
 
 val generateResources by tasks.registering {
@@ -115,36 +113,38 @@ val generateResources by tasks.registering {
 }
 
 tasks.shadowJar {
-    archiveFileName.set("${metadata.name}.jar")
-    archiveClassifier.set("plugin")
+    archiveFileName = "${metadata.name}.jar"
+    archiveClassifier = "plugin"
     from(generateResources)
     from(rootProject.file("LICENSE.md")) { into("META-INF") }
     minimize()
 }
 
-tasks.build {
-    dependsOn(tasks.shadowJar)
+tasks.register<Copy>("release") {
+    dependsOn(tasks.build)
+    from(tasks.shadowJar)
+    into(temporaryDir)
 }
 
 val downloadDistributorLoggingSimple by tasks.registering(GithubAssetDownload::class) {
-    owner.set("xpdustry")
-    repo.set("distributor")
-    asset.set("distributor-logging-simple.jar")
-    version.set("v${libs.versions.distributor.get()}")
+    owner = "xpdustry"
+    repo = "distributor"
+    asset = "distributor-logging-simple.jar"
+    version = "v${libs.versions.distributor.get()}"
 }
 
 val downloadDistributorCommon by tasks.registering(GithubAssetDownload::class) {
-    owner.set("xpdustry")
-    repo.set("distributor")
-    asset.set("distributor-common.jar")
-    version.set("v${libs.versions.distributor.get()}")
+    owner = "xpdustry"
+    repo = "distributor"
+    asset = "distributor-common.jar"
+    version = "v${libs.versions.distributor.get()}"
 }
 
 val downloadKotlinRuntime by tasks.registering(GithubAssetDownload::class) {
-    owner.set("xpdustry")
-    repo.set("kotlin-runtime")
-    asset.set("kotlin-runtime.jar")
-    version.set("v${libs.versions.kotlin.runtime.get()}-k.${libs.versions.kotlin.core.get()}")
+    owner = "xpdustry"
+    repo = "kotlin-runtime"
+    asset = "kotlin-runtime.jar"
+    version = "v${libs.versions.kotlin.runtime.get()}-k.${libs.versions.kotlin.core.get()}"
 }
 
 tasks.runMindustryServer {

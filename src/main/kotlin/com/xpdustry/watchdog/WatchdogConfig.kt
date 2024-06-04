@@ -23,15 +23,15 @@
  */
 package com.xpdustry.watchdog
 
-import com.xpdustry.distributor.api.plugin.AbstractMindustryPlugin
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
-@Suppress("unused")
-internal class WatchdogPlugin : AbstractMindustryPlugin() {
-    override fun onInit() {
-        logger.info("Bonjour")
-    }
-
-    override fun onExit() {
-        logger.info("Au revoir")
-    }
+internal data class WatchdogConfig(
+    val history: History = History(),
+) {
+    data class History(
+        val tileEntriesLimit: Int = 20,
+        val playerEntriesLimit: Int = 200,
+        val doubleClickDelay: Duration = 200.milliseconds,
+    )
 }
