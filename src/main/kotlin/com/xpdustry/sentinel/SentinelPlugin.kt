@@ -76,7 +76,7 @@ import org.incendo.cloud.execution.ExecutionCoordinator
 @Suppress("unused")
 internal class SentinelPlugin : AbstractMindustryPlugin(), SentinelAPI {
     private val processor = PluginAnnotationProcessor.events(this)
-    private val http = HttpClient.newHttpClient()
+    private val http = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()
     private lateinit var clientsCommand: MindustryCommandManager<CommandSender>
     private lateinit var serversCommand: MindustryCommandManager<CommandSender>
     private lateinit var config: SentinelConfig
