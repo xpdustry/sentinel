@@ -32,7 +32,6 @@ import com.google.common.net.InetAddresses
 import com.xpdustry.distributor.api.plugin.PluginListener
 import com.xpdustry.sentinel.AddressBlockerConfig
 import com.xpdustry.sentinel.SentinelScope
-import com.xpdustry.sentinel.exception.InvalidHttpResponseException
 import java.io.IOException
 import java.io.InputStream
 import java.math.BigInteger
@@ -43,11 +42,13 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.concurrent.CompletableFuture
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -98,7 +99,8 @@ internal class StaticAddressBlocker(
                 .map { provider ->
                     SentinelScope.async {
                         try {
-                            val result = provider.fetchAddressRanges(http)
+                            val result =
+                                withTimeout(10.seconds) { provider.fetchAddressRanges(http) }
                             LOGGER.debug(
                                 "Found {} address ranges from provider {}",
                                 result.size,
