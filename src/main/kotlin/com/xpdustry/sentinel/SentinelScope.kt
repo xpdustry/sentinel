@@ -1,4 +1,6 @@
 /*
+ * This file is part of Sentinel, a powerful security plugin for Mindustry.
+ *
  * MIT License
  *
  * Copyright (c) 2024 Xpdustry
@@ -21,6 +23,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog.util
+package com.xpdustry.sentinel
 
-public data class Point(val x: Int, val y: Int)
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+
+internal val SentinelScope =
+    CoroutineScope(
+        Dispatchers.Default +
+            SupervisorJob() +
+            CoroutineName("Sentinel") +
+            CoroutineExceptionHandler { _, exception ->
+                SentinelPlugin.INSTANCE.logger.error(
+                    "An uncaught error occurred in sentinel", exception)
+            })

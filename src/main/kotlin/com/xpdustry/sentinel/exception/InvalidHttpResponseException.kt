@@ -23,3 +23,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.xpdustry.sentinel.exception
+
+import java.io.IOException
+
+internal class InvalidHttpResponseException(val code: Int, message: String) : IOException(message)

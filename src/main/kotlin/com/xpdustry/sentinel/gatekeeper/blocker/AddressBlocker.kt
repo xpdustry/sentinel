@@ -1,4 +1,6 @@
 /*
+ * This file is part of Sentinel, a powerful security plugin for Mindustry.
+ *
  * MIT License
  *
  * Copyright (c) 2024 Xpdustry
@@ -21,12 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog.util
+package com.xpdustry.sentinel.gatekeeper.blocker
 
-import arc.struct.ObjectMap
-import arc.struct.Seq
-import com.xpdustry.distributor.api.collection.MindustryCollections
+import com.xpdustry.sentinel.util.toCompletableFuture
+import java.net.InetAddress
+import java.util.concurrent.CompletableFuture
 
-internal fun <T> Seq<T>.asList(): List<T> = MindustryCollections.immutableList(this)
+internal fun interface AddressBlocker {
+    fun blocked(address: InetAddress): CompletableFuture<Boolean>
 
-internal fun <K, V> ObjectMap<K, V>.asMap(): Map<K, V> = MindustryCollections.immutableMap(this)
+    data object Noop : AddressBlocker {
+        override fun blocked(address: InetAddress) = false.toCompletableFuture()
+    }
+}

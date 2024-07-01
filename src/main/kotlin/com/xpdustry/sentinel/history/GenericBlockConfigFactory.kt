@@ -1,4 +1,6 @@
 /*
+ * This file is part of Sentinel, a powerful security plugin for Mindustry.
+ *
  * MIT License
  *
  * Copyright (c) 2024 Xpdustry
@@ -21,29 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog.factory
+package com.xpdustry.sentinel.history
 
-import com.xpdustry.watchdog.api.history.HistoryConfig
-import com.xpdustry.watchdog.api.history.HistoryEntry
-import com.xpdustry.watchdog.util.asMap
+import com.xpdustry.sentinel.util.asMap
 import mindustry.ctype.UnlockableContent
 import mindustry.gen.Building
 
-internal object CommonConfigurationFactory : HistoryConfig.Factory<Building> {
+internal object GenericBlockConfigFactory : BlockConfigFactory<Building> {
     override fun create(
         building: Building,
         type: HistoryEntry.Type,
         config: Any?,
-    ): HistoryConfig? {
+    ): BlockConfig? {
         if (isContentConfigurableBlockOnly(building)) {
             if (config == null) {
-                return HistoryConfig.Content(null)
+                return BlockConfig.Reset
             } else if (config is UnlockableContent) {
-                return HistoryConfig.Content(config)
+                return BlockConfig.Content(config)
             }
         } else if (isEnablingBlockOnly(building)) {
             if (config is Boolean) {
-                return HistoryConfig.Enable(config)
+                return BlockConfig.Enable(config)
             }
         }
         return null
@@ -51,11 +51,8 @@ internal object CommonConfigurationFactory : HistoryConfig.Factory<Building> {
 
     private fun isContentConfigurableBlockOnly(building: Building): Boolean {
         for (configuration in building.block().configurations.keys()) {
-            if (!(
-                    UnlockableContent::class.java.isAssignableFrom(configuration) ||
-                        configuration == Void.TYPE
-                )
-            ) {
+            if (!(UnlockableContent::class.java.isAssignableFrom(configuration) ||
+                configuration == Void.TYPE)) {
                 return false
             }
         }

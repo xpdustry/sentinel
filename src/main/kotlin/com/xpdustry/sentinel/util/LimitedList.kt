@@ -23,3 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.xpdustry.sentinel.util
+
+import java.util.LinkedList
+
+internal class LimitedList<E>(private val limit: Int) : LinkedList<E>() {
+    override fun add(element: E): Boolean {
+        if (this.size >= limit) removeFirst()
+        return super.add(element)
+    }
+}

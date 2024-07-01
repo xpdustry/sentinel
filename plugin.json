@@ -1,12 +1,12 @@
 {
-  "name": "watchdog",
-  "displayName": "Watchdog",
+  "name": "sentinel",
+  "displayName": "Sentinel",
   "author": "xpdustry",
-  "description": "Monitor your mindustry server.",
+  "description": "Secure your mindustry server.",
   "version": "0.1.0",
   "minGameVersion": "146",
   "java": true,
-  "main": "com.xpdustry.watchdog.WatchdogPlugin",
-  "repo": "xpdustry/watchdog",
+  "main": "com.xpdustry.sentinel.SentinelPlugin",
+  "repo": "xpdustry/sentinel",
   "dependencies": ["kotlin-runtime","distributor-common"]
 }

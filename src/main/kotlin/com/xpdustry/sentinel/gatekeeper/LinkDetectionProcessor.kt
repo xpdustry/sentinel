@@ -23,3 +23,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.xpdustry.sentinel.gatekeeper
+
+import arc.util.Strings
+import com.xpdustry.distributor.api.component.TranslatableComponent.translatable
+import com.xpdustry.sentinel.processing.Processor
+import com.xpdustry.sentinel.util.toCompletableFuture
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
+
+internal object LinkDetectionProcessor : Processor<GatekeeperContext, GatekeeperResult> {
+
+    private val LINK_REGEX = Regex("https?://|discord.gg")
+
+    override fun process(context: GatekeeperContext) =
+        (if (LINK_REGEX.containsMatchIn(Strings.stripColors(context.name)))
+                GatekeeperResult.Failure(
+                    translatable("sentinel.gatekeeper.link-detection.failure"),
+                    10.seconds.toJavaDuration())
+            else GatekeeperResult.Success)
+            .toCompletableFuture()
+}

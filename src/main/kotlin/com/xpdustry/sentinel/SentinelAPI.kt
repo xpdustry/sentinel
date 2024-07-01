@@ -23,3 +23,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.xpdustry.sentinel
+
+import com.xpdustry.sentinel.gatekeeper.GatekeeperPipeline
+import com.xpdustry.sentinel.history.HistoryReader
+import com.xpdustry.sentinel.history.HistoryRenderer
+
+public interface SentinelAPI {
+    public val liveHistoryReader: HistoryReader
+    public val renderer: HistoryRenderer
+    public val gatekeeper: GatekeeperPipeline
+
+    public companion object {
+        @JvmStatic public fun get(): SentinelAPI = SentinelPlugin.INSTANCE
+    }
+}

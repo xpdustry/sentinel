@@ -1,4 +1,6 @@
 /*
+ * This file is part of Sentinel, a powerful security plugin for Mindustry.
+ *
  * MIT License
  *
  * Copyright (c) 2024 Xpdustry
@@ -21,23 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog.api.history
+package com.xpdustry.sentinel.gatekeeper
 
-public interface HistoryExplorer {
-    public fun getHistory(
-        x: Int,
-        y: Int,
-    ): List<HistoryEntry>
+import com.xpdustry.distributor.api.component.TranslatableComponent.translatable
+import com.xpdustry.sentinel.processing.Processor
+import com.xpdustry.sentinel.util.toCompletableFuture
+import java.time.Duration
 
-    public fun getHistory(uuid: String): List<HistoryEntry>
+private val CRACKED_CLIENT_USERNAMES =
+    listOf(
+        "valve",
+        "tuttop",
+        "codex",
+        "igggames",
+        "igg-games.com",
+        "igruhaorg",
+        "freetp.org",
+        "goldberg",
+        "rog")
 
-    public fun getLatestPlace(
-        x: Int,
-        y: Int,
-    ): HistoryEntry? =
-        getHistory(x, y)
-            .toMutableList()
-            .dropLastWhile { it.type == HistoryEntry.Type.ROTATE || it.type == HistoryEntry.Type.CONFIGURE }
-            .lastOrNull()
-            ?.takeIf { it.type == HistoryEntry.Type.PLACE }
+// Go figure why but some people are using cracked clients on a free game... Incredible.
+internal object CrackedClientProcessor : Processor<GatekeeperContext, GatekeeperResult> {
+    override fun process(context: GatekeeperContext) =
+        (if (CRACKED_CLIENT_USERNAMES.any { it.equals(context.name, ignoreCase = true) })
+                GatekeeperResult.Failure(
+                    translatable("sentinel.gatekeeper.cracked-client.failure"), Duration.ZERO)
+            else GatekeeperResult.Success)
+            .toCompletableFuture()
 }

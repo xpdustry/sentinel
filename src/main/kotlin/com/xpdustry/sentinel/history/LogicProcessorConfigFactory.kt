@@ -1,4 +1,6 @@
 /*
+ * This file is part of Sentinel, a powerful security plugin for Mindustry.
+ *
  * MIT License
  *
  * Copyright (c) 2024 Xpdustry
@@ -21,36 +23,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog.factory
+package com.xpdustry.sentinel.history
 
-import com.xpdustry.watchdog.api.history.HistoryConfig
-import com.xpdustry.watchdog.api.history.HistoryEntry
-import com.xpdustry.watchdog.util.Point
-import com.xpdustry.watchdog.util.asList
-import mindustry.world.blocks.logic.LogicBlock
+import com.xpdustry.sentinel.util.Point
+import com.xpdustry.sentinel.util.asList
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.io.IOException
-import java.nio.charset.StandardCharsets
 import java.util.zip.InflaterInputStream
+import mindustry.world.blocks.logic.LogicBlock
 
-internal object LogicProcessorConfigurationFactory :
-    LinkableBlockConfigurationFactory<LogicBlock.LogicBuild>() {
+internal object LogicProcessorConfigFactory : LinkableBlockConfigFactory<LogicBlock.LogicBuild>() {
+
     private const val MAX_INSTRUCTIONS_SIZE = 1024 * 500
 
     override fun create(
         building: LogicBlock.LogicBuild,
         type: HistoryEntry.Type,
         config: Any?,
-    ): HistoryConfig? {
+    ): BlockConfig? {
         if (type === HistoryEntry.Type.PLACING ||
             type === HistoryEntry.Type.PLACE ||
             type === HistoryEntry.Type.BREAKING ||
-            type === HistoryEntry.Type.BREAK
-        ) {
+            type === HistoryEntry.Type.BREAK) {
             return getConfiguration(building)
         } else if (config is ByteArray) {
-            return readCode(config)?.let { HistoryConfig.Text(it, HistoryConfig.Text.Type.CODE) }
+            return readCode(config)?.let { BlockConfig.Text(it) }
         }
         return super.create(building, type, config)
     }
@@ -64,22 +62,20 @@ internal object LogicProcessorConfigurationFactory :
         return link != null && link.active
     }
 
-    private fun getConfiguration(building: LogicBlock.LogicBuild): HistoryConfig? {
-        val configurations = mutableListOf<HistoryConfig>()
+    private fun getConfiguration(building: LogicBlock.LogicBuild): BlockConfig? {
+        val configurations = mutableListOf<BlockConfig>()
         val links =
             building.links
                 .asList()
                 .filter { it.active }
-                .map { link ->
-                    Point(link.x - building.tileX(), link.y - building.tileY())
-                }
+                .map { link -> Point(link.x - building.tileX(), link.y - building.tileY()) }
                 .toList()
 
         if (links.isNotEmpty()) {
-            configurations += HistoryConfig.Link(links, true)
+            configurations += BlockConfig.Link(links, true)
         }
         if (building.code.isNotBlank()) {
-            configurations += HistoryConfig.Text(building.code, HistoryConfig.Text.Type.CODE)
+            configurations += BlockConfig.Text(building.code)
         }
 
         return if (configurations.isEmpty()) {
@@ -87,11 +83,11 @@ internal object LogicProcessorConfigurationFactory :
         } else if (configurations.size == 1) {
             configurations[0]
         } else {
-            HistoryConfig.Composite(configurations)
+            BlockConfig.Composite(configurations)
         }
     }
 
-    private fun readCode(compressed: ByteArray): String? {
+    private fun readCode(compressed: ByteArray): String? =
         try {
             DataInputStream(InflaterInputStream(ByteArrayInputStream(compressed))).use { stream ->
                 val version: Int = stream.read()
@@ -114,10 +110,9 @@ internal object LogicProcessorConfigurationFactory :
                         stream.readShort() // y
                     }
                 }
-                return String(bytes, StandardCharsets.UTF_8)
+                bytes.decodeToString()
             }
         } catch (exception: IOException) {
-            return null
+            null
         }
-    }
 }

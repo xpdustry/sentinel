@@ -1,4 +1,6 @@
 /*
+ * This file is part of Sentinel, a powerful security plugin for Mindustry.
+ *
  * MIT License
  *
  * Copyright (c) 2024 Xpdustry
@@ -21,31 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog.api.history
+package com.xpdustry.sentinel.processing
 
-import mindustry.world.Block
-import java.time.Instant
+import java.util.concurrent.CompletableFuture
 
-public data class HistoryEntry(
-    val x: Int,
-    val y: Int,
-    val buildX: Int,
-    val buildY: Int,
-    val author: HistoryAuthor,
-    val block: Block,
-    val type: Type,
-    val rotation: Int,
-    val configuration: HistoryConfig? = null,
-    val virtual: Boolean = false,
-    val timestamp: Instant = Instant.now(),
-) {
-    public enum class Type {
-        PLACING,
-        PLACE,
-        BREAKING,
-        ROTATE,
-        BREAK,
-        CONFIGURE,
-        // SET,
-    }
+public interface ProcessorPipeline<I : Any, O : Any> {
+    public fun pump(context: I): CompletableFuture<O>
 }

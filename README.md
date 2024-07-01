@@ -1,4 +1,4 @@
-# watchdog
+# sentinel
 
 [![Xpdustry latest](https://maven.xpdustry.com/api/badge/latest/releases/com/xpdustry/template?color=00FFFF&name=template-plugin&prefix=v)](https://github.com/xpdustry/template-plugin/releases)
 [![Build status](https://github.com/xpdustry/template-plugin/actions/workflows/build.yml/badge.svg?branch=master&event=push)](https://github.com/xpdustry/template-plugin/actions/workflows/build.yml)
@@ -6,7 +6,7 @@
 
 ## Description
 
-Monitor your mindustry server.
+Secure your mindustry server.
 
 ## Installation
 

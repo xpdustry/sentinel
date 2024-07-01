@@ -1,4 +1,6 @@
 /*
+ * This file is part of Sentinel, a powerful security plugin for Mindustry.
+ *
  * MIT License
  *
  * Copyright (c) 2024 Xpdustry
@@ -21,10 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog.api.history
+package com.xpdustry.sentinel.history
 
-import com.xpdustry.distributor.api.component.Component
+import com.xpdustry.sentinel.util.Point
+import java.nio.ByteBuffer
+import mindustry.ctype.MappableContent
 
-public interface HistoryRenderer {
-    public fun render(entries: List<HistoryEntry>): Component
+public sealed interface BlockConfig {
+
+    public data class Composite(val configs: List<BlockConfig>) : BlockConfig
+
+    public data class Enable(val value: Boolean) : BlockConfig
+
+    public data class Content(val value: MappableContent) : BlockConfig
+
+    public data class Link(val positions: List<Point>, val connection: Boolean) : BlockConfig
+
+    public data class Text(val text: String) : BlockConfig
+
+    public data class Light(val color: Int) : BlockConfig
+
+    public data class Canvas(val content: ByteBuffer) : BlockConfig
+
+    public data object Reset : BlockConfig
 }

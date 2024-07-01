@@ -1,4 +1,6 @@
 /*
+ * This file is part of Sentinel, a powerful security plugin for Mindustry.
+ *
  * MIT License
  *
  * Copyright (c) 2024 Xpdustry
@@ -21,27 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog
+package com.xpdustry.sentinel.history
 
 import arc.math.geom.Point2
 import com.xpdustry.distributor.api.annotation.EventHandler
 import com.xpdustry.distributor.api.plugin.PluginListener
 import com.xpdustry.distributor.api.util.Priority
-import com.xpdustry.watchdog.api.history.HistoryAuthor
-import com.xpdustry.watchdog.api.history.HistoryConfig
-import com.xpdustry.watchdog.api.history.HistoryEntry
-import com.xpdustry.watchdog.api.history.HistoryExplorer
-import com.xpdustry.watchdog.factory.CANVAS_CONFIGURATION_FACTORY
-import com.xpdustry.watchdog.factory.CommonConfigurationFactory
-import com.xpdustry.watchdog.factory.ITEM_BRIDGE_CONFIGURATION_FACTORY
-import com.xpdustry.watchdog.factory.LIGHT_CONFIGURATION_FACTORY
-import com.xpdustry.watchdog.factory.LogicProcessorConfigurationFactory
-import com.xpdustry.watchdog.factory.MASS_DRIVER_CONFIGURATION_FACTORY
-import com.xpdustry.watchdog.factory.MESSAGE_BLOCK_CONFIGURATION_FACTORY
-import com.xpdustry.watchdog.factory.PAYLOAD_DRIVER_CONFIGURATION_FACTORY
-import com.xpdustry.watchdog.factory.POWER_NODE_CONFIGURATION_FACTORY
-import com.xpdustry.watchdog.factory.UNIT_FACTORY_CONFIGURATION_FACTORY
-import com.xpdustry.watchdog.util.LimitedList
+import com.xpdustry.sentinel.util.LimitedList
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSuperclassOf
+import kotlin.reflect.full.superclasses
 import mindustry.core.GameState.State
 import mindustry.game.EventType
 import mindustry.game.EventType.StateChangeEvent
@@ -58,38 +49,35 @@ import mindustry.world.blocks.payloads.PayloadMassDriver
 import mindustry.world.blocks.power.LightBlock
 import mindustry.world.blocks.power.PowerNode
 import mindustry.world.blocks.units.UnitFactory
-import kotlin.reflect.KClass
-import kotlin.reflect.full.isSuperclassOf
-import kotlin.reflect.full.superclasses
 
-internal class LiveHistoryExplorer(private val config: WatchdogConfig.History) : HistoryExplorer, PluginListener {
+internal class LiveHistoryReader(private val config: com.xpdustry.sentinel.HistoryConfig) :
+    HistoryReader, PluginListener {
+
     private val positions = mutableMapOf<Int, LimitedList<HistoryEntry>>()
     private val players = mutableMapOf<String, LimitedList<HistoryEntry>>()
-    private val factories = mutableMapOf<KClass<out Building>, HistoryConfig.Factory<*>>()
+    private val factories = mutableMapOf<KClass<out Building>, BlockConfigFactory<*>>()
 
-    override fun onPluginInit() {
+    override fun onPluginLoad() {
         setConfigurationFactory<CanvasBlock.CanvasBuild>(CANVAS_CONFIGURATION_FACTORY)
-        setConfigurationFactory<Building>(CommonConfigurationFactory)
+        setConfigurationFactory<Building>(GenericBlockConfigFactory)
         setConfigurationFactory<ItemBridge.ItemBridgeBuild>(ITEM_BRIDGE_CONFIGURATION_FACTORY)
         setConfigurationFactory<LightBlock.LightBuild>(LIGHT_CONFIGURATION_FACTORY)
-        setConfigurationFactory<LogicBlock.LogicBuild>(LogicProcessorConfigurationFactory)
+        setConfigurationFactory<LogicBlock.LogicBuild>(LogicProcessorConfigFactory)
         setConfigurationFactory<MassDriver.MassDriverBuild>(MASS_DRIVER_CONFIGURATION_FACTORY)
         setConfigurationFactory<MessageBlock.MessageBuild>(MESSAGE_BLOCK_CONFIGURATION_FACTORY)
-        setConfigurationFactory<PayloadMassDriver.PayloadDriverBuild>(PAYLOAD_DRIVER_CONFIGURATION_FACTORY)
+        setConfigurationFactory<PayloadMassDriver.PayloadDriverBuild>(
+            PAYLOAD_DRIVER_CONFIGURATION_FACTORY)
         setConfigurationFactory<PowerNode.PowerNodeBuild>(POWER_NODE_CONFIGURATION_FACTORY)
         setConfigurationFactory<UnitFactory.UnitFactoryBuild>(UNIT_FACTORY_CONFIGURATION_FACTORY)
     }
 
-    private inline fun <reified B : Building> setConfigurationFactory(factory: HistoryConfig.Factory<B>) {
+    private inline fun <reified B : Building> setConfigurationFactory(
+        factory: BlockConfigFactory<B>
+    ) {
         factories[B::class] = factory
     }
 
-    override fun getHistory(
-        x: Int,
-        y: Int,
-    ): List<HistoryEntry> {
-        return positions[Point2.pack(x, y)] ?: emptyList()
-    }
+    override fun getHistory(x: Int, y: Int) = positions[Point2.pack(x, y)]?.toList() ?: emptyList()
 
     override fun getHistory(uuid: String): List<HistoryEntry> {
         return players[uuid] ?: emptyList()
@@ -173,26 +161,26 @@ internal class LiveHistoryExplorer(private val config: WatchdogConfig.History) :
         building: B,
         type: HistoryEntry.Type,
         config: Any?,
-    ): HistoryConfig? {
+    ): BlockConfig? {
         if (building.block().configurations.isEmpty) {
             return null
         }
         var clazz: KClass<*> = building::class
         while (Building::class.isSuperclassOf(clazz)) {
             @Suppress("UNCHECKED_CAST")
-            val factory: HistoryConfig.Factory<B>? = factories[clazz] as HistoryConfig.Factory<B>?
+            val factory: BlockConfigFactory<B>? = factories[clazz] as BlockConfigFactory<B>?
             if (factory != null) {
                 return factory.create(building, type, config)
             }
             clazz = clazz.superclasses.first()
         }
-        return if (config == null) HistoryConfig.Unknown(null) else HistoryConfig.Unknown(config)
+        return null
     }
 
     private fun addEntry(
         building: Building,
         block: Block,
-        author: HistoryAuthor,
+        author: HistoryActor,
         type: HistoryEntry.Type,
         config: Any?,
     ) {
@@ -226,11 +214,9 @@ internal class LiveHistoryExplorer(private val config: WatchdogConfig.History) :
             entries.removeLast()
         }
         entries.add(entry)
-        if (entry.author is HistoryAuthor.Player && !entry.virtual) {
+        if (entry.actor is HistoryActor.Player && !entry.virtual) {
             players
-                .computeIfAbsent(entry.author.muuid.uuid) {
-                    LimitedList(config.playerEntriesLimit)
-                }
+                .computeIfAbsent(entry.actor.muuid.uuid) { LimitedList(config.playerEntriesLimit) }
                 .add(entry)
         }
     }
@@ -244,7 +230,7 @@ internal class LiveHistoryExplorer(private val config: WatchdogConfig.History) :
             entryA.type === entryB.type
     }
 
-    private fun Unit.toAuthor(): HistoryAuthor {
-        return if (isPlayer) HistoryAuthor.Player(player) else HistoryAuthor.Unit(this)
+    private fun Unit.toAuthor(): HistoryActor {
+        return if (isPlayer) HistoryActor.Player(player) else HistoryActor.Unit(this)
     }
 }

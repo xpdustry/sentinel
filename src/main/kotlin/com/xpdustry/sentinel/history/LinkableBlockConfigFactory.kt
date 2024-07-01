@@ -1,4 +1,6 @@
 /*
+ * This file is part of Sentinel, a powerful security plugin for Mindustry.
+ *
  * MIT License
  *
  * Copyright (c) 2024 Xpdustry
@@ -21,44 +23,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog.factory
+package com.xpdustry.sentinel.history
 
 import arc.math.geom.Point2
-import com.xpdustry.watchdog.api.history.HistoryConfig
-import com.xpdustry.watchdog.api.history.HistoryEntry
-import com.xpdustry.watchdog.util.Point
+import com.xpdustry.sentinel.util.Point
 import mindustry.gen.Building
 
-internal abstract class LinkableBlockConfigurationFactory<B : Building> : HistoryConfig.Factory<B> {
+internal abstract class LinkableBlockConfigFactory<B : Building> : BlockConfigFactory<B> {
     override fun create(
         building: B,
         type: HistoryEntry.Type,
         config: Any?,
-    ): HistoryConfig? {
+    ): BlockConfig? {
         if (config == null || !building.block().configurations.containsKey(config.javaClass)) {
             return null
         }
         return if (config is Int) {
             if (config == -1 || config == building.pos()) {
-                return HistoryConfig.Link(emptyList(), HistoryConfig.Link.Type.RESET)
+                return BlockConfig.Reset
             }
             val point = Point2.unpack(config)
             if (point.x < 0 || point.y < 0) {
                 null
             } else {
-                HistoryConfig.Link(
+                BlockConfig.Link(
                     listOf(Point(point.x - building.tileX(), point.y - building.tileY())),
                     isLinkValid(building, point.x, point.y),
                 )
             }
         } else if (config is Point2) {
             // Point2 are used by schematics, so they are already relative to the building
-            HistoryConfig.Link(
+            BlockConfig.Link(
                 listOf(Point(config.x, config.y)),
                 isLinkValid(building, config.x + building.tileX(), config.y + building.tileY()),
             )
         } else if (config is Array<*> && config.isArrayOf<Point2>()) {
-            HistoryConfig.Link(
+            BlockConfig.Link(
                 config.map {
                     it as Point2
                     Point(it.x, it.y)
@@ -70,9 +70,5 @@ internal abstract class LinkableBlockConfigurationFactory<B : Building> : Histor
         }
     }
 
-    protected abstract fun isLinkValid(
-        building: B,
-        x: Int,
-        y: Int,
-    ): Boolean
+    protected abstract fun isLinkValid(building: B, x: Int, y: Int): Boolean
 }

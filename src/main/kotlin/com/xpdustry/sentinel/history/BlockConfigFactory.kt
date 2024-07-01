@@ -23,3 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.xpdustry.sentinel.history
+
+import mindustry.gen.Building
+
+public fun interface BlockConfigFactory<B : Building> {
+    public fun create(building: B, type: HistoryEntry.Type, config: Any?): BlockConfig?
+}

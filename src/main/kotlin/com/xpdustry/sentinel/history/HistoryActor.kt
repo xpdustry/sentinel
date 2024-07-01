@@ -23,3 +23,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.xpdustry.sentinel.history
+
+import com.xpdustry.distributor.api.player.MUUID
+import mindustry.game.Team
+import mindustry.gen.Nulls
+import mindustry.type.UnitType
+
+public sealed interface HistoryActor {
+    public val team: Team
+    public val unit: UnitType
+
+    public class Unit(unit: mindustry.gen.Unit) : HistoryActor {
+        override val team: Team = unit.team()
+        override val unit: UnitType = unit.type()
+    }
+
+    public class Player(
+        public val muuid: MUUID,
+        override val team: Team,
+        override val unit: UnitType
+    ) : HistoryActor {
+        public constructor(
+            player: mindustry.gen.Player
+        ) : this(MUUID.from(player), player.team(), player.unit().type())
+    }
+
+    public data object Server : HistoryActor {
+        override val team: Team = Team.derelict
+        override val unit: UnitType = Nulls.unit.type
+    }
+}

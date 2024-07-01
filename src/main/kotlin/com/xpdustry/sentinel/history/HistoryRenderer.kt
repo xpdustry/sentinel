@@ -1,4 +1,6 @@
 /*
+ * This file is part of Sentinel, a powerful security plugin for Mindustry.
+ *
  * MIT License
  *
  * Copyright (c) 2024 Xpdustry
@@ -21,13 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog.util
+package com.xpdustry.sentinel.history
 
-import java.util.LinkedList
+import com.xpdustry.distributor.api.component.Component
 
-internal class LimitedList<E>(private val limit: Int) : LinkedList<E>() {
-    override fun add(element: E): Boolean {
-        if (this.size >= limit) removeFirst()
-        return super.add(element)
-    }
+public interface HistoryRenderer {
+    public fun render(entries: List<HistoryEntry>, x: Int, y: Int): Component
+
+    public fun render(entries: List<HistoryEntry>, actor: HistoryActor.Player): Component
+
+    public fun render(entries: List<HistoryEntry>): Component
 }

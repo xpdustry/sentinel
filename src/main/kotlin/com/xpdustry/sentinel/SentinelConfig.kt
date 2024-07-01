@@ -23,3 +23,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.xpdustry.sentinel
+
+import com.sksamuel.hoplite.ConfigAlias
+
+internal data class SentinelConfig(
+    val history: HistoryConfig = HistoryConfig(),
+    val gatekeeper: GatekeeperConfig = GatekeeperConfig(),
+)
+
+internal data class HistoryConfig(
+    val enabled: Boolean = true,
+    val tileEntriesLimit: Int = 20,
+    val playerEntriesLimit: Int = 200,
+)
+
+internal data class GatekeeperConfig(
+    val enabled: Boolean = true,
+    val filters: Filters = Filters(),
+) {
+    data class Filters(
+        val crackedClient: Boolean = true,
+        val link: Boolean = true,
+        val address: AddressBlockerConfig = AddressBlockerConfig.Static(),
+    )
+}
+
+internal sealed interface AddressBlockerConfig {
+    data object None : AddressBlockerConfig
+
+    data class VpnApi(@ConfigAlias("vpn-api-token") val token: String) : AddressBlockerConfig
+
+    data class Static(val providers: Set<String> = emptySet()) : AddressBlockerConfig
+}

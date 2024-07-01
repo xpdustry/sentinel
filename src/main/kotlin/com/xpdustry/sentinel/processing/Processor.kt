@@ -23,3 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.xpdustry.sentinel.processing
+
+import java.util.concurrent.CompletableFuture
+
+public fun interface Processor<I : Any, O : Any> {
+    public fun process(context: I): CompletableFuture<O>
+}

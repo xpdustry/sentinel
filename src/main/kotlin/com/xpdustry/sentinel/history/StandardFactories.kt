@@ -1,4 +1,6 @@
 /*
+ * This file is part of Sentinel, a powerful security plugin for Mindustry.
+ *
  * MIT License
  *
  * Copyright (c) 2024 Xpdustry
@@ -21,11 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog.factory
+package com.xpdustry.sentinel.history
 
 import arc.math.geom.Point2
-import com.xpdustry.watchdog.api.history.HistoryConfig
-import com.xpdustry.watchdog.api.history.HistoryEntry
+import java.nio.ByteBuffer
 import mindustry.Vars
 import mindustry.type.UnitType
 import mindustry.world.blocks.distribution.ItemBridge
@@ -36,36 +37,35 @@ import mindustry.world.blocks.payloads.PayloadMassDriver
 import mindustry.world.blocks.power.LightBlock
 import mindustry.world.blocks.power.PowerNode
 import mindustry.world.blocks.units.UnitFactory
-import java.awt.Color
 
 internal val CANVAS_CONFIGURATION_FACTORY =
-    HistoryConfig.Factory<CanvasBuild> { _, _, config ->
-        if (config is ByteArray) HistoryConfig.Canvas(config) else null
+    BlockConfigFactory<CanvasBuild> { _, _, config ->
+        if (config is ByteArray) BlockConfig.Canvas(ByteBuffer.wrap(config.clone())) else null
     }
 
 internal val LIGHT_CONFIGURATION_FACTORY =
-    HistoryConfig.Factory<LightBlock.LightBuild> { _, _, config ->
-        if (config is Int) HistoryConfig.Light(Color(config, true)) else null
+    BlockConfigFactory<LightBlock.LightBuild> { _, _, config ->
+        if (config is Int) BlockConfig.Light(config) else null
     }
 
 internal val MESSAGE_BLOCK_CONFIGURATION_FACTORY =
-    HistoryConfig.Factory<MessageBlock.MessageBuild> { _, _, config ->
-        if (config is String) HistoryConfig.Text(config, HistoryConfig.Text.Type.MESSAGE) else null
+    BlockConfigFactory<MessageBlock.MessageBuild> { _, _, config ->
+        if (config is String) BlockConfig.Text(config) else null
     }
 
 internal val UNIT_FACTORY_CONFIGURATION_FACTORY =
-    object : HistoryConfig.Factory<UnitFactory.UnitFactoryBuild> {
+    object : BlockConfigFactory<UnitFactory.UnitFactoryBuild> {
         override fun create(
             building: UnitFactory.UnitFactoryBuild,
             type: HistoryEntry.Type,
             config: Any?,
-        ): HistoryConfig? {
+        ): BlockConfig? {
             val plans = (building.block as UnitFactory).plans
             if (config is Int) {
                 return if (config > 0 && config < plans.size) {
-                    HistoryConfig.Content(plans[config].unit)
+                    BlockConfig.Content(plans[config].unit)
                 } else {
-                    HistoryConfig.Content(null)
+                    BlockConfig.Reset
                 }
             } else if (config is UnitType) {
                 return create(building, type, plans.indexOf { plan -> plan.unit == config })
@@ -75,21 +75,16 @@ internal val UNIT_FACTORY_CONFIGURATION_FACTORY =
     }
 
 internal val ITEM_BRIDGE_CONFIGURATION_FACTORY =
-    object : LinkableBlockConfigurationFactory<ItemBridge.ItemBridgeBuild>() {
+    object : LinkableBlockConfigFactory<ItemBridge.ItemBridgeBuild>() {
         override fun isLinkValid(
             building: ItemBridge.ItemBridgeBuild,
             x: Int,
             y: Int,
-        ): Boolean {
-            return (building.block() as ItemBridge).linkValid(
-                building.tile(),
-                Vars.world.tile(x, y),
-            )
-        }
+        ) = (building.block() as ItemBridge).linkValid(building.tile(), Vars.world.tile(x, y))
     }
 
 internal val MASS_DRIVER_CONFIGURATION_FACTORY =
-    object : LinkableBlockConfigurationFactory<MassDriver.MassDriverBuild>() {
+    object : LinkableBlockConfigFactory<MassDriver.MassDriverBuild>() {
         override fun isLinkValid(
             building: MassDriver.MassDriverBuild,
             x: Int,
@@ -107,18 +102,16 @@ internal val MASS_DRIVER_CONFIGURATION_FACTORY =
     }
 
 internal val POWER_NODE_CONFIGURATION_FACTORY =
-    object : LinkableBlockConfigurationFactory<PowerNode.PowerNodeBuild>() {
+    object : LinkableBlockConfigFactory<PowerNode.PowerNodeBuild>() {
         override fun isLinkValid(
             building: PowerNode.PowerNodeBuild,
             x: Int,
             y: Int,
-        ): Boolean {
-            return building.power().links.contains(Point2.pack(x, y))
-        }
+        ) = building.power().links.contains(Point2.pack(x, y))
     }
 
 internal val PAYLOAD_DRIVER_CONFIGURATION_FACTORY =
-    object : LinkableBlockConfigurationFactory<PayloadMassDriver.PayloadDriverBuild>() {
+    object : LinkableBlockConfigFactory<PayloadMassDriver.PayloadDriverBuild>() {
         override fun isLinkValid(
             building: PayloadMassDriver.PayloadDriverBuild,
             x: Int,

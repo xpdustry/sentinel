@@ -1,4 +1,6 @@
 /*
+ * This file is part of Sentinel, a powerful security plugin for Mindustry.
+ *
  * MIT License
  *
  * Copyright (c) 2024 Xpdustry
@@ -21,17 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog
+package com.xpdustry.sentinel.gatekeeper.blocker
 
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
+import java.net.InetAddress
+import java.util.concurrent.CompletableFuture
 
-internal data class WatchdogConfig(
-    val history: History = History(),
-) {
-    data class History(
-        val tileEntriesLimit: Int = 20,
-        val playerEntriesLimit: Int = 200,
-        val doubleClickDelay: Duration = 200.milliseconds,
-    )
+public fun interface AddressWhitelist {
+    public fun whitelisted(address: InetAddress): CompletableFuture<Boolean>
+
+    public data object Noop : AddressWhitelist {
+        override fun whitelisted(address: InetAddress): CompletableFuture<Boolean> =
+            CompletableFuture.completedFuture(false)
+    }
 }

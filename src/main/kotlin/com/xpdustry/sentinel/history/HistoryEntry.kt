@@ -1,4 +1,6 @@
 /*
+ * This file is part of Sentinel, a powerful security plugin for Mindustry.
+ *
  * MIT License
  *
  * Copyright (c) 2024 Xpdustry
@@ -21,30 +23,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.xpdustry.watchdog.api.history
+package com.xpdustry.sentinel.history
 
-import com.xpdustry.distributor.api.player.MUUID
-import mindustry.game.Team
-import mindustry.gen.Nulls
-import mindustry.type.UnitType
+import java.time.Instant
+import mindustry.world.Block
 
-public sealed interface HistoryAuthor {
-    public val team: Team
-    public val unit: UnitType
-
-    public class Unit(unit: mindustry.gen.Unit) : HistoryAuthor {
-        override val team: Team = unit.team()
-        override val unit: UnitType = unit.type()
-    }
-
-    public class Player(player: mindustry.gen.Player) : HistoryAuthor {
-        public val muuid: MUUID = MUUID.from(player)
-        override val team: Team = player.team()
-        override val unit: UnitType = player.unit().type()
-    }
-
-    public data object Server : HistoryAuthor {
-        override val team: Team = Team.derelict
-        override val unit: UnitType = Nulls.unit.type
+public data class HistoryEntry(
+    val x: Int,
+    val y: Int,
+    val buildX: Int,
+    val buildY: Int,
+    val actor: HistoryActor,
+    val block: Block,
+    val type: Type,
+    val rotation: Int,
+    val configuration: BlockConfig? = null,
+    val virtual: Boolean = false,
+    val timestamp: Instant = Instant.now(),
+) {
+    public enum class Type {
+        PLACING,
+        PLACE,
+        BREAKING,
+        ROTATE,
+        BREAK,
+        CONFIGURE,
     }
 }
