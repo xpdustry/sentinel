@@ -28,7 +28,7 @@ package com.xpdustry.sentinel.gatekeeper.blocker
 import com.google.common.cache.CacheBuilder
 import com.xpdustry.sentinel.AddressBlockerConfig
 import com.xpdustry.sentinel.SentinelScope
-import com.xpdustry.sentinel.exception.InvalidHttpResponseException
+import java.io.IOException
 import java.net.InetAddress
 import java.net.URI
 import java.net.http.HttpClient
@@ -72,10 +72,10 @@ internal class VpnApiAddressBlocker(
             )
 
         if (response.statusCode() == 429) {
-            throw InvalidHttpResponseException(429, "Rate limited")
+            throw IOException("Rate limited")
         }
         if (response.statusCode() != 200) {
-            throw InvalidHttpResponseException(response.statusCode(), "Unexpected status code")
+            throw IOException("Unexpected status code: ${response.statusCode()}")
         }
 
         return Json.decodeFromString<JsonObject>(response.body())["security"]!!

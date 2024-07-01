@@ -143,10 +143,8 @@ private abstract class AbstractAddressProvider(override val name: String) : Addr
                 )
             }
         if (response.statusCode() != 200) {
-            throw InvalidHttpResponseException(
-                response.statusCode(),
-                "Failed to download '$name' public addresses file (uri: ${response.uri()})",
-            )
+            throw IOException(
+                "Failed to download '$name' public addresses file (uri: ${response.uri()}, code: ${response.statusCode()}")
         }
         return response.body().use { extractAddressRanges(it) }
     }
